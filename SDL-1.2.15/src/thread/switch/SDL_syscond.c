@@ -56,7 +56,6 @@ SDL_CreateCond(void)
     return (cond);
 }
 
-/* Destroy a condition variable */
 void
 SDL_DestroyCond(SDL_cond * cond)
 {
@@ -65,7 +64,6 @@ SDL_DestroyCond(SDL_cond * cond)
     }
 }
 
-/* Restart one of the threads that are waiting on the condition variable */
 int
 SDL_CondSignal(SDL_cond * cond)
 {
@@ -90,27 +88,6 @@ SDL_CondBroadcast(SDL_cond * cond)
     return 0;
 }
 
-/* Wait on the condition variable for at most 'ms' milliseconds.
-   The mutex must be locked before entering this function!
-   The mutex is unlocked during the wait, and locked again after the wait.
-
-Typical use:
-
-Thread A:
-    SDL_LockMutex(lock);
-    while ( ! condition ) {
-        SDL_CondWait(cond, lock);
-    }
-    SDL_UnlockMutex(lock);
-
-Thread B:
-    SDL_LockMutex(lock);
-    ...
-    condition = true;
-    ...
-    SDL_CondSignal(cond);
-    SDL_UnlockMutex(lock);
- */
 int
 SDL_CondWaitTimeout(SDL_cond * cond, SDL_mutex * mutex, Uint32 ms)
 {
@@ -121,12 +98,12 @@ SDL_CondWaitTimeout(SDL_cond * cond, SDL_mutex * mutex, Uint32 ms)
         return -1;
     }
 
-     condvarInit(&cond->cond, &mutex->mutex);
+     condvarInit(&cond->cond);
 
     /* Unlock the mutex, as is required by condition variable semantics */
     SDL_UnlockMutex(mutex);
 
-    retval =  condvarWaitTimeout(&cond->cond, (ms == SDL_MUTEX_MAXWAIT) ? U64_MAX : (signed long long)ms*1000000);
+    retval =  condvarWaitTimeout(&cond->cond, &mutex->mutex, (ms == SDL_MUTEX_MAXWAIT) ? U64_MAX : (signed long long)ms*1000000);
 
     /* Lock the mutex, as is required by condition variable semantics */
     SDL_LockMutex(mutex);
@@ -145,12 +122,12 @@ SDL_CondWait(SDL_cond * cond, SDL_mutex * mutex)
         return -1;
     }
 
-    condvarInit(&cond->cond, &mutex->mutex);
+    condvarInit(&cond->cond);
 	
     /* Unlock the mutex, as is required by condition variable semantics */
     SDL_UnlockMutex(mutex);
 
-    retval =  condvarWait(&cond->cond);
+    retval =  condvarWait(&cond->cond, &mutex->mutex);
 
     /* Lock the mutex, as is required by condition variable semantics */
     SDL_LockMutex(mutex);

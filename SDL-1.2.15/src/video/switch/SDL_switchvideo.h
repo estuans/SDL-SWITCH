@@ -25,6 +25,7 @@
 #define _SDL_switchvideo_h
 
 #include "../SDL_sysvideo.h"
+#include "switch.h"
 
 /* Hidden "this" pointer for the video functions */
 #define _THIS	SDL_VideoDevice *this
